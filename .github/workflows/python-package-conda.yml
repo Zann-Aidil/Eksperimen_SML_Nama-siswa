@@ -1,0 +1,44 @@
+name: Titanic Preprocessing Pipeline
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+    paths:
+      - 'preprocessing/**'
+      - 'namadataset_raw/**'
+      - '.github/workflows/preprocessing.yml'
+
+jobs:
+  preprocess:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r preprocessing/requirements.txt
+
+      - name: Run preprocessing
+        run: |
+          cd preprocessing
+          python automate_nama_siswa.py --train ../namadataset_raw/train.csv --test ../namadataset_raw/test.csv --output_dir ../namadataset_preprocessing
+
+      - name: Show output files
+        run: |
+          ls -R
+          ls -R namadataset_preprocessing
+
+      - name: Upload preprocessing artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: titanic-preprocessed-data
+          path: namadataset_preprocessing/
